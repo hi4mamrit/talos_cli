@@ -1,0 +1,7 @@
+openai
+pyyaml
+python-dotenv
+schedule
+imaplib2
+requests
+beautifulsoup4

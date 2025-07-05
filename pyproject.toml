@@ -1,0 +1,17 @@
+[project]
+name = "llm_orchestrator"
+version = "0.1.0"
+description = "Orchestrates LLM agent DAGs via YAML"
+authors = [
+  { name = "Abhijnan Acharya", email = "abhijnanacharya11@gmail.com" }
+]
+dependencies = [
+  "openai",
+  "pyyaml",
+  "python-dotenv",
+  "schedule",
+  "imaplib2",
+  "requests",
+  "beautifulsoup4"
+]
+requires-python = ">=3.10"

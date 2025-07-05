@@ -1,0 +1,27 @@
+name: daily_p0_digest
+
+# schedule: "0 9 * * *"
+
+steps:
+  - id: fetch_emails
+    agent: gmail_reader
+    params:
+      label: "INBOX"
+    output: emails
+    depends_on: []
+
+  - id: extract_p0
+    agent: gpt_task_extractor
+    # prompt: ""
+    input: ${fetch_emails.output}
+    depends_on: [fetch_emails]
+
+  - id: summarize
+    agent: gpt_summarizer
+    input: ${extract_p0.output}
+    depends_on: [extract_p0]
+
+  - id: notify_user
+    agent: discord_notifier
+    input: ${summarize.output}
+    depends_on: [summarize]

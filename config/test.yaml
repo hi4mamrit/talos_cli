@@ -1,0 +1,6 @@
+name: test_sample_dag
+
+steps:
+  - id: test_step
+    agent: helloWorld
+    depends_on: []

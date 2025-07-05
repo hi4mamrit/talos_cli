@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments and uv artifacts
+.venv/
+.uv/
+uv.lock
+
+
+# Packaging / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Test / coverage / cache
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache/
+.hypothesis/
+
+# VS Code / IDEs / MacOS
+.vscode/
+.idea/
+.DS_Store
+
+# Environment & runtime configs
+.env
+*.local
+*.log
