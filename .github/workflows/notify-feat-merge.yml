@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  send-merge-notification:
+  notify-discord:
     runs-on: ubuntu-latest
     steps:
       - name: Send Commit Summary to Discord
@@ -15,8 +15,6 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         with:
           script: |
-            const fetch = require('node-fetch');
-
             const commits = context.payload.commits
               .map(c => `• [\`${c.id.slice(0, 7)}\`](${c.url}) ${c.message.split('\n')[0]} — _${c.author.name}_`)
               .join('\n');
