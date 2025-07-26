@@ -24,6 +24,7 @@ def build_dependency_graph(steps):
 def topological_sort(graph, indegree):
     q = deque([node for node in indegree if indegree[node] == 0])
     sorted_steps = []
+    total_nodes = len(indegree)
 
     while q:
         node = q.popleft()
@@ -32,6 +33,11 @@ def topological_sort(graph, indegree):
             indegree[neighbor] -= 1
             if indegree[neighbor] == 0:
                 q.append(neighbor)
+
+    # Check for cycles - if we haven't processed all nodes, there's a cycle
+    if len(sorted_steps) != total_nodes:
+        remaining_nodes = [node for node in indegree if node not in sorted_steps]
+        raise ValueError(f"Cycle detected in DAG. Nodes involved in cycle: {remaining_nodes}")
 
     return sorted_steps
 
@@ -50,9 +56,24 @@ def run_dag_from_yaml(yaml_path: str):
 
         # Resolve dynamic input references like ${extract_p0.output}
         raw_input = step.get("input", "")
-        if isinstance(raw_input, str) and raw_input.startswith("${"):
-            ref = raw_input.strip("${}").split(".")
-            dep_id = ref[0]
+        if isinstance(raw_input, str) and raw_input.startswith("${") and raw_input.endswith("}"):
+            ref_content = raw_input[2:-1]  # Remove ${ and }
+            
+            # Validate the reference format (only allow alphanumeric, underscore, and single dot)
+            if not ref_content.replace("_", "").replace(".", "").isalnum() or ref_content.count(".") != 1:
+                raise ValueError(f"Invalid reference format: {raw_input}. Expected format: ${{step_id.output}}")
+            
+            ref_parts = ref_content.split(".")
+            dep_id, output_key = ref_parts[0], ref_parts[1]
+            
+            # Validate that the referenced step exists in our outputs
+            if dep_id not in step_outputs:
+                raise ValueError(f"Referenced step '{dep_id}' not found in previous outputs")
+            
+            # Only allow 'output' as the property for security
+            if output_key != "output":
+                raise ValueError(f"Only 'output' property is allowed, got: {output_key}")
+                
             step["input"] = step_outputs.get(dep_id)
 
         output = run_agent_by_name(agent, step.get("input"), step.get("params", {}))
