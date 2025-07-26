@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
-import imaplib
 import email
-from email.header import decode_header
-from bs4 import BeautifulSoup
+import imaplib
 import os
+from datetime import datetime, timedelta
+from email.header import decode_header
+
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -71,7 +72,7 @@ def fetch_recent_emails():
                     emails.append((subject, body))
 
         return emails
-    
+
     finally:
         # Ensure IMAP connection is always closed, even if an exception occurs
         if imap is not None:
