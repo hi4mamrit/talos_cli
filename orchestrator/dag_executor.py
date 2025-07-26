@@ -1,6 +1,13 @@
 import yaml
 from collections import defaultdict, deque
 
+from email_client.fetcher import fetch_recent_emails
+from email_client.task_extractor import extract_p0_tasks
+from orchestrator.agents.helloWorld import hello_world
+from orchestrator.agents.ollama_runner import run_ollama
+from orchestrator.agents.summarizer import summarize_p0_tasks
+from utils.discord_notifier import send_discord_message
+
 def load_dag_config(yaml_path: str):
     with open(yaml_path, 'r') as f:
         return yaml.safe_load(f)
@@ -58,22 +65,22 @@ def run_dag_from_yaml(yaml_path: str):
         raw_input = step.get("input", "")
         if isinstance(raw_input, str) and raw_input.startswith("${") and raw_input.endswith("}"):
             ref_content = raw_input[2:-1]  # Remove ${ and }
-            
+
             # Validate the reference format (only allow alphanumeric, underscore, and single dot)
             if not ref_content.replace("_", "").replace(".", "").isalnum() or ref_content.count(".") != 1:
                 raise ValueError(f"Invalid reference format: {raw_input}. Expected format: ${{step_id.output}}")
-            
+
             ref_parts = ref_content.split(".")
             dep_id, output_key = ref_parts[0], ref_parts[1]
-            
+
             # Validate that the referenced step exists in our outputs
             if dep_id not in step_outputs:
                 raise ValueError(f"Referenced step '{dep_id}' not found in previous outputs")
-            
+
             # Only allow 'output' as the property for security
             if output_key != "output":
                 raise ValueError(f"Only 'output' property is allowed, got: {output_key}")
-                
+
             step["input"] = step_outputs.get(dep_id)
 
         output = run_agent_by_name(agent, step.get("input"), step.get("params", {}))
@@ -82,13 +89,6 @@ def run_dag_from_yaml(yaml_path: str):
     return step_outputs
 
 def run_agent_by_name(agent_name, input_text, params=None):
-    from email_client.fetcher import fetch_recent_emails
-    from email_client.task_extractor import extract_p0_tasks
-    from orchestrator.agents.summarizer import summarize_p0_tasks
-    from orchestrator.agents.helloWorld import HelloWorld
-    from utils.discord_notifier import send_discord_message
-    from orchestrator.agents.ollama_runner import run_ollama
-    
     if agent_name == "gmail_reader":
         return fetch_recent_emails()
     elif agent_name == "gpt_task_extractor":
@@ -96,7 +96,7 @@ def run_agent_by_name(agent_name, input_text, params=None):
     elif agent_name == "gpt_summarizer":
         return summarize_p0_tasks(input_text)
     elif agent_name == "ollama_agent":
-      return run_ollama(input_text, params or {})
+        return run_ollama(input_text, params or {})
     elif agent_name == "file_writer":
         with open("data/p0_digest_summary.txt", "w") as f:
             f.write(input_text)
@@ -106,6 +106,6 @@ def run_agent_by_name(agent_name, input_text, params=None):
         send_discord_message(topic, input_text)
         return "✅ sent to Discord"
     elif agent_name == "helloWorld":
-        return HelloWorld()
+        return hello_world()
     else:
         raise ValueError(f"Unknown agent: {agent_name}")
